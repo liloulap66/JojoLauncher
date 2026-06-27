@@ -3943,6 +3943,7 @@ input:checked + .toggleSwitchSlider:before {
     position: absolute;
     width: 277px;
     height: auto;
+    animation: pulse 2s ease-in-out infinite;
 }
 
 /* Rotating image for the spinner. */
@@ -3959,6 +3960,19 @@ input:checked + .toggleSwitchSlider:before {
     }
     to {
         transform: rotate(360deg);
+    }
+}
+
+/* Pulse animation for the center logo. */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
     }
 }
 
