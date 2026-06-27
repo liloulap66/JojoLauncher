@@ -1,38 +1,69 @@
 name: Build
 
-on: push
+on:
+  push:
+    branches: [master]
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
 
 jobs:
-  release:
-    runs-on: ${{ matrix.os }}
-
-    permissions:
-      contents: write
-
+  build:
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '22'
+          cache: 'npm'
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: 3.x
+      - run: npm ci
 
-      - name: Install Dependencies
-        run: npm ci
-        shell: bash
-
-      - name: Build
+      - name: Build on Windows
+        if: runner.os == 'Windows'
+        run: npm run dist:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run dist
-        shell: bash
+
+      - name: Build on macOS
+        if: runner.os == 'macOS'
+        run: npm run dist:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build on Linux
+        if: runner.os == 'Linux'
+        run: npm run dist:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ runner.os }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.blockmap
+            dist/latest*.yml
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true
