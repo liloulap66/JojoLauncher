@@ -35,19 +35,19 @@ jobs:
 
       - name: Build on Windows
         if: runner.os == 'Windows'
-        run: npm run dist:win
+        run: npm run dist:win -- --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build on macOS
         if: runner.os == 'macOS'
-        run: npm run dist:mac
+        run: npm run dist:mac -- --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build on Linux
         if: runner.os == 'Linux'
-        run: npm run dist:linux
+        run: npm run dist:linux -- --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
